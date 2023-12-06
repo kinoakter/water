@@ -3,6 +3,7 @@ package water
 import (
 	"errors"
 	"io"
+	"os"
 )
 
 // Interface is a TUN/TAP interface.
@@ -77,4 +78,16 @@ func (ifce *Interface) IsTAP() bool {
 // Name returns the interface name of ifce, e.g. tun0, tap1, tun0, etc..
 func (ifce *Interface) Name() string {
 	return ifce.name
+}
+
+// File Returns TUN's underlying os.File
+func (ifce *Interface) File() (*os.File, error) {
+	switch f := ifce.ReadWriteCloser.(type) {
+	case *tunReadCloser:
+		return f.f.(*os.File), nil
+	case *os.File:
+		return f, nil
+	default:
+		return nil, errors.New("unrecognized ReadWriteCloser occurred in tun Interface")
+	}
 }
